@@ -170,6 +170,26 @@ Creating run charts for the specified metrics involves a similar process to gene
 ### Mean of Median
 The choice between mean and median depends on the data's distribution and the presence of outliers. The mean, providing the arithmetic average, is best used for data that is symmetrically distributed with few outliers, as it considers all values. However, it can be misleading for skewed distributions or when outliers significantly impact the average. The median, identifying the middle value, is more robust in skewed distributions or when outliers are present, as it is less affected by extreme values. For small datasets, both can be informative, but for larger datasets, the median can provide a clearer picture of central tendency in the presence of skewness or outliers.
 
+Using daily averages (mean or median) to analyze 25 days' worth of data involves several assumptions about the data and its distribution. Understanding these assumptions is crucial for ensuring that the analysis is valid and the insights derived are reliable. Here are the key assumptions:
+#### 1. Assumptions for Using the Mean
+
+    Normality: When using the mean, it's often assumed that the data are normally distributed, especially if you're planning to apply parametric statistical tests. The mean is sensitive to outliers, which can skew the results if the data are not symmetrically distributed.
+    Random Sampling: It's assumed that the daily data points are randomly sampled and represent the population of interest. This ensures that the mean is a fair representation of the overall data.
+    Independence: Each day's data is assumed to be independent of the others. This means the result from one day does not influence the results from another day, which is crucial for many statistical tests.
+    Homogeneity of Variance: If you're comparing means across different groups or times, it's often assumed that the variances within each group are similar. This assumption is particularly important for analyses like ANOVA.
+
+#### 2. Assumptions for Using the Median
+
+    Fewer Distributional Assumptions: Unlike the mean, the median makes fewer assumptions about the distribution of the data. It does not assume normality and is not affected by outliers or skewed distributions. This makes it a robust measure of central tendency for data that are not normally distributed.
+    Independence: Similar to using the mean, it's assumed that each day's data is independent of the others.
+    Ordinal or Continuous Data: The median is suitable for ordinal (ranked) or continuous data. It assumes that the data can be ordered or ranked.
+
+#### 3. General Assumptions
+
+    Sufficient Data: While there's no specific minimum number of days required, the assumption is that 25 days of data provide sufficient information to detect the underlying pattern or trend. However, the adequacy of this sample size can depend on the variability in the data and the context of the analysis.
+    Consistency in Data Collection: It's assumed that the method of data collection remains consistent across the 25 days. Any changes in how data are collected could introduce bias or variability that affects the analysis.
+    Representativeness: The data collected over the 25 days should be representative of the typical conditions or operations. For example, if the data exclude weekends or holidays without accounting for their impact, the analysis may not fully capture the true dynamics.
+
 ### GO TO:
 - [Median as Measure of Central Tendency](#median-as-measure-of-central-tendency)
 - [Mean as Measure of Central Tendency](#mean-as-measure-of-central-tendency)

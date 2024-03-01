@@ -430,3 +430,81 @@ Instructions for Visualization in Databricks
 - For the MR Chart: Plot Date on the X-axis and MovingRange, UCL_MR (and LCL_MR if applicable) on the Y-axis to visualize the moving range and its upper control limit.
 
 This approach ensures you're visualizing the aggregated summary data with the appropriate statistical control limits to assess process stability and control effectively.
+
+To adjust the process for an X-bar S (mean and standard deviation) chart, you'll be working with groups of samples (subgroups) taken throughout each day rather than individual measurements or daily averages. This method is more appropriate when you have multiple samples per period (e.g., day) and want to monitor the variability within these samples as well as the process average. Here’s how you can adjust your process:
+Step 1: Aggregate Subgroup Averages for "Order Processing Time (mins)"
+
+First, you need to calculate the average of each subgroup. A subgroup can be a set of measurements taken at a specific time of the day or batches of orders processed together.
+
+python
+
+# Assuming existing_df is your initial DataFrame and it includes a 'Subgroup' column
+subgroup_avg = existing_df.groupBy("Date", "Subgroup").avg("Order Processing Time (mins)").orderBy("Date", "Subgroup")
+
+Step 2: Calculate Daily Subgroup Averages and Standard Deviations
+
+Next, calculate the daily average of these subgroup averages and the standard deviation within each day's subgroups.
+
+python
+
+from pyspark.sql import functions as F
+
+daily_stats = subgroup_avg.groupBy("Date").agg(
+    F.avg("avg(Order Processing Time (mins))").alias("DailyAvg"),
+    F.stddev("avg(Order Processing Time (mins))").alias("DailyStdDev")
+).orderBy("Date")
+
+Step 3: Calculate Overall Mean and Standard Deviation of Subgroup Averages
+
+Now, compute the overall mean of the subgroup averages and the average of the daily standard deviations to estimate the process variability.
+
+python
+
+overall_mean = daily_stats.select(F.avg("DailyAvg")).first()[0]
+average_std_dev = daily_stats.select(F.avg("DailyStdDev")).first()[0]
+
+Step 4: Calculate UCL and LCL for the X-bar Chart
+
+Using the overall mean and average standard deviation, calculate the control limits for the X-bar chart.
+
+python
+
+# Assuming 'A2' is the appropriate factor for the number of observations per subgroup
+A2 = 0.0  # Replace 0.0 with the actual A2 value for your subgroup size
+
+ucl_xbar = overall_mean + A2 * average_std_dev
+lcl_xbar = overall_mean - A2 * average_std_dev if overall_mean - A2 * average_std_dev > 0 else 0
+
+daily_stats = daily_stats.withColumn("UCL_Xbar", F.lit(ucl_xbar)).withColumn("LCL_Xbar", F.lit(lcl_xbar))
+
+Step 5: Calculate UCL and LCL for the S Chart
+
+Similarly, calculate the control limits for the standard deviation (S) chart using factors B3 and B4, which depend on the subgroup size.
+
+python
+
+# Assuming 'B3' and 'B4' are the appropriate factors for the number of observations per subgroup
+B3 = 0.0  # Replace 0.0 with the actual B3 value
+B4 = 0.0  # Replace 0.0 with the actual B4 value
+
+ucl_s = B4 * average_std_dev
+lcl_s = B3 * average_std_dev if B3 * average_std_dev > 0 else 0
+
+daily_stats = daily_stats.withColumn("UCL_S", F.lit(ucl_s)).withColumn("LCL_S", F.lit(lcl_s))
+
+Final DataFrame for Visualization
+
+Your daily_stats DataFrame is now ready for visualization and contains the following columns:
+
+    Date
+    DailyAvg (Daily average of subgroup averages)
+    DailyStdDev (Daily standard deviation of subgroups)
+    UCL_Xbar and LCL_Xbar (Upper and lower control limits for the X-bar chart)
+    UCL_S and LCL_S (Upper and lower control limits for the S chart)
+
+Instructions for Visualization in Databricks
+
+    For the X-bar Chart: When visualizing, plot Date on the X-axis and DailyAvg, UCL_Xbar, and LCL_Xbar on the Y-axis to show the daily averages along with their control limits.
+    For the S Chart: Plot Date on the X-axis and DailyStdDev, UCL_S, and LCL_S on the Y-axis to visualize the daily standard deviation and its control limits.
+
+This approach enables you to monitor both the central tendency and dispersion of your process, which is crucial for understanding and controlling process variability effectively.
